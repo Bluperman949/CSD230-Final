@@ -1,5 +1,6 @@
 package bluper.b9final
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,15 +8,38 @@ import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import bluper.b9final.databinding.ActivityMainBinding
 import bluper.b9final.databinding.RecyclerItemBinding
-import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.IOException
+
+// TODO: about button
+// TODO: api key stored as secret or something
+const val key = "KEY"
+
+@OptIn(InternalSerializationApi::class)
+@Serializable
+data class SteamTag(val tagid: Int, val name: String)
 
 class MainActivity : ComponentActivity() {
   val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
   private val adapter by lazy { RecyclerAdapter() }
+  private val httpClient = OkHttpClient()
+  private val json = Json { ignoreUnknownKeys = true }
+
+  private var steamTags: List<SteamTag> = run { loadSteamTags(); emptyList() /* overwritten */ }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -32,15 +56,49 @@ class MainActivity : ComponentActivity() {
     binding.recycler.adapter = adapter
 
     // search functionality
-    binding.buttonSearch.setOnClickListener { v ->
-      // TODO: but actually search fr
-      adapter.clear()
-    }
+    binding.buttonSearch.setOnClickListener { searchSteam(binding.editTextSearch.text.toString()) }
+  }
 
-    // TODO: temporary, remove later
-    binding.editTextSearch.addTextChangedListener { v ->
-      adapter.addItem(v.toString())
+  fun searchSteam(text: String) {
+    if (text.isEmpty()) return
+    adapter.clear()
+    adapter.addItems(steamTags.map { it.name })
+  }
+
+  @Throws(IOException::class)
+  private suspend fun httpRequest(request: Request): JsonElement {
+    return withContext(Dispatchers.IO) {
+      val responseStr = httpClient.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) throw IOException("HTTP ${response.code} from \"${request.url}\"")
+        response.body?.string() ?: throw IOException("Empty HTTP response from \"${request.url}\"")
+      }
+      json.decodeFromString<JsonElement>(responseStr)
     }
+  }
+
+  private fun loadSteamTags() {
+    val request = Request.Builder()
+      .url("https://api.steampowered.com/IStoreService/GetTagList/v1/?key=$key&language=english")
+      .build()
+    lifecycleScope.launch {
+      try {
+        val responseElem = httpRequest(request)
+        val response = responseElem.jsonObject["response"]?.jsonObject["tags"]
+          ?: throw IOException("Failed reading Tags: ${request.url}")
+        steamTags = json.decodeFromJsonElement<List<SteamTag>>(response)
+      } catch (e: Exception) {
+        errorDialog(e)
+      }
+    }
+  }
+
+  private fun <E : Exception> errorDialog(e: E) {
+    e.printStackTrace()
+    AlertDialog.Builder(this@MainActivity)
+      .setTitle(R.string.error)
+      .setMessage(e.message)
+      .setPositiveButton("OK", null)
+      .show()
   }
 }
 
@@ -73,7 +131,8 @@ private class RecyclerAdapter : RecyclerView.Adapter<RecyclerAdapter.RecyclerHol
   }
 
   override fun onBindViewHolder(holder: RecyclerHolder, pos: Int) {
-    holder.binding.textView.text = String.format(Locale.getDefault(), "Item #%d: %s", pos, data[pos])
+    val content = "Item #$pos: ${data[pos]}"
+    holder.binding.textView.text = content
   }
 
   class RecyclerHolder(view: View) : RecyclerView.ViewHolder(view) {
