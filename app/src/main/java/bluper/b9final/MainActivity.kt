@@ -35,12 +35,12 @@ data class SteamTag(val tagid: Int, val name: String)
 
 class MainActivity : ComponentActivity() {
   val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
-  private val adapter by lazy { RecyclerAdapter() }
+  private val adapter by lazy { TagRecyclerAdapter() }
   private val httpClient = OkHttpClient()
   private val json = Json { ignoreUnknownKeys = true }
 
   private var apiKey = "NO_API_KEY"
-  private var steamTags: List<SteamTag> = run { loadSteamTags(); emptyList() /* overwritten */ }
+  private var steamTags: List<SteamTag> = emptyList()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -54,7 +54,10 @@ class MainActivity : ComponentActivity() {
     }
 
     // prompt user for API key
-    acquireApiKey()
+//    acquireApiKey()
+
+    // acquire Tags from Steam API and add them to the recycler
+    loadSteamTags()
 
     // give recycler view ability to fill itself with items
     binding.recycler.adapter = adapter
@@ -66,7 +69,6 @@ class MainActivity : ComponentActivity() {
   fun searchSteam(text: String) {
     if (text.isEmpty()) return
     adapter.clear()
-    adapter.addItems(steamTags.map { it.name })
   }
 
   private fun acquireApiKey() {
@@ -94,7 +96,7 @@ class MainActivity : ComponentActivity() {
 
   private fun loadSteamTags() {
     val request = Request.Builder()
-      .url("https://api.steampowered.com/IStoreService/GetTagList/v1/?key=$apiKey&language=english")
+      .url("https://api.steampowered.com/IStoreService/GetTagList/v1/?language=english")
       .build()
     lifecycleScope.launch {
       try {
@@ -102,6 +104,7 @@ class MainActivity : ComponentActivity() {
         val response = responseElem.jsonObject["response"]?.jsonObject["tags"]
           ?: throw IOException("Failed reading Tags: ${request.url}")
         steamTags = json.decodeFromJsonElement<List<SteamTag>>(response)
+        adapter.addItems(steamTags)
       } catch (e: Exception) {
         errorDialog(e)
       }
@@ -118,21 +121,20 @@ class MainActivity : ComponentActivity() {
   }
 }
 
-private class RecyclerAdapter : RecyclerView.Adapter<RecyclerAdapter.RecyclerHolder>() {
-  private val data = arrayListOf<String>();
+private abstract class RecyclerAdapter<T> : RecyclerView.Adapter<RecyclerAdapter.RecyclerHolder>() {
+  private val data = arrayListOf<T>();
 
   fun clear() {
-    val len = data.size
     data.clear()
-    notifyItemRangeRemoved(0, len)
+    notifyItemRangeRemoved(0, data.size)
   }
 
-  fun addItem(item: String) {
+  fun addItem(item: T) {
     data += item
     notifyItemInserted(data.size - 1)
   }
 
-  fun addItems(items: List<String>) {
+  fun addItems(items: Collection<T>) {
     data += items
     notifyItemRangeInserted(data.size - items.size, items.size)
   }
@@ -147,11 +149,16 @@ private class RecyclerAdapter : RecyclerView.Adapter<RecyclerAdapter.RecyclerHol
   }
 
   override fun onBindViewHolder(holder: RecyclerHolder, pos: Int) {
-    val content = "Item #$pos: ${data[pos]}"
-    holder.binding.textView.text = content
+    holder.binding.textView.text = formatDatum(data[pos])
   }
+
+  abstract fun formatDatum(datum: T): String
 
   class RecyclerHolder(view: View) : RecyclerView.ViewHolder(view) {
     val binding by lazy { RecyclerItemBinding.bind(view) }
   }
+}
+
+private class TagRecyclerAdapter : RecyclerAdapter<SteamTag>() {
+  override fun formatDatum(datum: SteamTag): String = datum.name
 }
