@@ -2,9 +2,11 @@ package bluper.b9final
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,8 +28,6 @@ import okhttp3.Request
 import java.io.IOException
 
 // TODO: about button
-// TODO: api key stored as secret or something
-const val key = "KEY"
 
 @OptIn(InternalSerializationApi::class)
 @Serializable
@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
   private val httpClient = OkHttpClient()
   private val json = Json { ignoreUnknownKeys = true }
 
+  private var apiKey = "NO_API_KEY"
   private var steamTags: List<SteamTag> = run { loadSteamTags(); emptyList() /* overwritten */ }
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +53,9 @@ class MainActivity : ComponentActivity() {
       insets
     }
 
+    // prompt user for API key
+    acquireApiKey()
+
     // give recycler view ability to fill itself with items
     binding.recycler.adapter = adapter
 
@@ -63,6 +67,18 @@ class MainActivity : ComponentActivity() {
     if (text.isEmpty()) return
     adapter.clear()
     adapter.addItems(steamTags.map { it.name })
+  }
+
+  private fun acquireApiKey() {
+    val input = EditText(this@MainActivity)
+    input.inputType = InputType.TYPE_TEXT_VARIATION_PASSWORD
+
+    AlertDialog.Builder(this@MainActivity)
+      .setView(input)
+      .setTitle(R.string.ask_api_key)
+      .setMessage(R.string.message_api_key)
+      .setPositiveButton("OK") { _, _ -> apiKey = input.text.toString() }
+      .show()
   }
 
   @Throws(IOException::class)
@@ -78,7 +94,7 @@ class MainActivity : ComponentActivity() {
 
   private fun loadSteamTags() {
     val request = Request.Builder()
-      .url("https://api.steampowered.com/IStoreService/GetTagList/v1/?key=$key&language=english")
+      .url("https://api.steampowered.com/IStoreService/GetTagList/v1/?key=$apiKey&language=english")
       .build()
     lifecycleScope.launch {
       try {
