@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SortedList
 import bluper.b9final.databinding.RecyclerItemGameBinding
 import bluper.b9final.databinding.RecyclerItemTagBinding
 import kotlinx.serialization.InternalSerializationApi
@@ -12,7 +13,9 @@ import kotlinx.serialization.Serializable
 // for the initial Tags view //
 @OptIn(InternalSerializationApi::class)
 @Serializable
-data class SteamTag(val tagid: Int, val name: String)
+data class SteamTag(val tagid: Int, val name: String) {
+  override fun toString(): String = name
+}
 
 class TagAdapter : Adapter<SteamTag, TagAdapter.Holder>() {
   override fun getLayoutId(): Int = R.layout.recycler_item_tag
@@ -31,7 +34,9 @@ class TagAdapter : Adapter<SteamTag, TagAdapter.Holder>() {
 // for the Games view //
 @OptIn(InternalSerializationApi::class)
 @Serializable
-data class SteamGame(val appid: Int, val name: String)
+data class SteamGame(val appid: Int, val name: String) {
+  override fun toString(): String = name
+}
 
 class GameAdapter : Adapter<SteamGame, GameAdapter.Holder>() {
   override fun getLayoutId(): Int = R.layout.recycler_item_tag
@@ -51,12 +56,13 @@ class GameAdapter : Adapter<SteamGame, GameAdapter.Holder>() {
 abstract class Adapter<T, H : RecyclerView.ViewHolder> :
   RecyclerView.Adapter<H>() {
 
-  private val data = arrayListOf<T>();
+  private val data = arrayListOf<T>()
   override fun getItemCount() = data.size
 
   fun clear() {
+    val len = data.size
     data.clear()
-    notifyItemRangeRemoved(0, data.size)
+    notifyItemRangeRemoved(0, len)
   }
 
   fun addItem(item: T) {
@@ -66,6 +72,7 @@ abstract class Adapter<T, H : RecyclerView.ViewHolder> :
 
   fun addItems(items: Collection<T>) {
     data += items
+    data.sortWith { a, b -> a.toString().compareTo(b.toString()) }
     notifyItemRangeInserted(data.size - items.size, items.size)
   }
 

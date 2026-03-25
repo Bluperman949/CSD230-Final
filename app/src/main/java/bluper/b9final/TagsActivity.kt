@@ -3,7 +3,9 @@ package bluper.b9final
 import android.app.AlertDialog
 import android.os.Bundle
 import android.text.InputType
+import android.view.Menu
 import android.widget.EditText
+import android.widget.SearchView
 import androidx.activity.ComponentActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -22,7 +24,7 @@ import java.io.IOException
 
 // TODO: about button
 
-class TagsActivity : ComponentActivity() {
+class TagsActivity : ComponentActivity(), SearchView.OnQueryTextListener {
   val binding by lazy { ActivityTagsBinding.inflate(layoutInflater) }
   private val adapter by lazy { TagAdapter() }
   private val httpClient = OkHttpClient()
@@ -50,15 +52,27 @@ class TagsActivity : ComponentActivity() {
 
     // give recycler view ability to fill itself with items
     binding.recycler.adapter = adapter
-
-    // search functionality
-    binding.buttonSearch.setOnClickListener { searchSteam(binding.editTextSearch.text.toString()) }
   }
 
-  fun searchSteam(text: String) {
-    if (text.isEmpty()) return
+  override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    menuInflater.inflate(R.menu.menu_search, menu)
+    val searchItem = menu?.findItem(R.id.action_search) ?: return false
+    val searchView = searchItem.actionView as SearchView
+    searchView.setOnQueryTextListener(this)
+    return true
+  }
+
+  override fun onQueryTextChange(text: String?): Boolean {
     adapter.clear()
+    if (text.isNullOrBlank())  {
+      adapter.addItems(steamTags)
+      return true
+    }
+    adapter.addItems(steamTags.filter { it.name.contains(text, true) })
+    return true
   }
+
+  override fun onQueryTextSubmit(text: String?): Boolean { return false }
 
   private fun acquireApiKey() {
     val input = EditText(this@TagsActivity)

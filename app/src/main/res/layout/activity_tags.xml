@@ -6,25 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".TagsActivity">
 
-    <EditText
-        android:id="@+id/edit_text_search"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:autofillHints="none"
-        android:hint="@string/hint_search"
-        android:inputType="text"
-        app:layout_constraintEnd_toStartOf="@id/button_search"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/button_search"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_search"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/edit_text_search" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
@@ -33,6 +14,6 @@
         app:spanCount="3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/edit_text_search" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

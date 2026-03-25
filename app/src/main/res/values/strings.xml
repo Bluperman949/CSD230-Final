@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Final Project</string>
+    <string name="app_name">Steam Search - Final Project</string>
     <string name="hint_search">Search Steam…</string>
     <string name="button_search">Search</string>
     <string name="error">Error</string>
@@ -7,4 +7,5 @@
     <string name="message_api_key">You can find your API key at https://steamcommunity.com/dev/apikey</string>
     <string name="hint_api_key">API Key</string>
     <string name="ok">OK</string>
+    <string name="action_search">Search</string>
 </resources>
