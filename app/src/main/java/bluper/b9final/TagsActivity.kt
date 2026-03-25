@@ -3,22 +3,15 @@ package bluper.b9final
 import android.app.AlertDialog
 import android.os.Bundle
 import android.text.InputType
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.RecyclerView
-import bluper.b9final.databinding.ActivityMainBinding
-import bluper.b9final.databinding.RecyclerItemBinding
+import bluper.b9final.databinding.ActivityTagsBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -29,13 +22,9 @@ import java.io.IOException
 
 // TODO: about button
 
-@OptIn(InternalSerializationApi::class)
-@Serializable
-data class SteamTag(val tagid: Int, val name: String)
-
-class MainActivity : ComponentActivity() {
-  val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
-  private val adapter by lazy { TagRecyclerAdapter() }
+class TagsActivity : ComponentActivity() {
+  val binding by lazy { ActivityTagsBinding.inflate(layoutInflater) }
+  private val adapter by lazy { TagAdapter() }
   private val httpClient = OkHttpClient()
   private val json = Json { ignoreUnknownKeys = true }
 
@@ -72,10 +61,10 @@ class MainActivity : ComponentActivity() {
   }
 
   private fun acquireApiKey() {
-    val input = EditText(this@MainActivity)
+    val input = EditText(this@TagsActivity)
     input.inputType = InputType.TYPE_TEXT_VARIATION_PASSWORD
 
-    AlertDialog.Builder(this@MainActivity)
+    AlertDialog.Builder(this@TagsActivity)
       .setView(input)
       .setTitle(R.string.ask_api_key)
       .setMessage(R.string.message_api_key)
@@ -113,52 +102,10 @@ class MainActivity : ComponentActivity() {
 
   private fun <E : Exception> errorDialog(e: E) {
     e.printStackTrace()
-    AlertDialog.Builder(this@MainActivity)
+    AlertDialog.Builder(this@TagsActivity)
       .setTitle(R.string.error)
       .setMessage(e.message)
       .setPositiveButton("OK", null)
       .show()
   }
-}
-
-private abstract class RecyclerAdapter<T> : RecyclerView.Adapter<RecyclerAdapter.RecyclerHolder>() {
-  private val data = arrayListOf<T>();
-
-  fun clear() {
-    data.clear()
-    notifyItemRangeRemoved(0, data.size)
-  }
-
-  fun addItem(item: T) {
-    data += item
-    notifyItemInserted(data.size - 1)
-  }
-
-  fun addItems(items: Collection<T>) {
-    data += items
-    notifyItemRangeInserted(data.size - items.size, items.size)
-  }
-
-  override fun getItemCount() = data.size
-
-  override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): RecyclerHolder {
-    // use recycler_item.xml as template for displaying list entries
-    val inflater = LayoutInflater.from(viewGroup.context)
-    val view = inflater.inflate(R.layout.recycler_item, viewGroup, false)
-    return RecyclerHolder(view)
-  }
-
-  override fun onBindViewHolder(holder: RecyclerHolder, pos: Int) {
-    holder.binding.textView.text = formatDatum(data[pos])
-  }
-
-  abstract fun formatDatum(datum: T): String
-
-  class RecyclerHolder(view: View) : RecyclerView.ViewHolder(view) {
-    val binding by lazy { RecyclerItemBinding.bind(view) }
-  }
-}
-
-private class TagRecyclerAdapter : RecyclerAdapter<SteamTag>() {
-  override fun formatDatum(datum: SteamTag): String = datum.name
 }

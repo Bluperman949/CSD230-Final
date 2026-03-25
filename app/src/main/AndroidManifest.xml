@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FinalProject">
         <activity
-            android:name=".MainActivity"
+            android:name=".TagsActivity"
             android:exported="true"
             android:theme="@style/Theme.FinalProject">
             <intent-filter>
