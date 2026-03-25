@@ -55,6 +55,16 @@ class GamesActivity : AbstractActivity() {
 
   override fun getInflatedBinding() = binding
 
+  override fun onQueryTextChange(text: String?): Boolean {
+    adapter.clear()
+    if (text.isNullOrBlank()) {
+      adapter.addItems(steamGames)
+      return true
+    }
+    adapter.addItems(steamGames.filter { it.name.contains(text, true) })
+    return true
+  }
+
   private fun loadSteamGames() {
     val request = Request.Builder()
       .url("https://api.steampowered.com/IStoreQueryService/Query/v1/?key=$apiKey&input_json=$queryJson")
@@ -73,11 +83,6 @@ class GamesActivity : AbstractActivity() {
         errorDialog(e)
       }
     }
-
-
   }
 
-  override fun onQueryTextChange(p0: String?): Boolean {
-    return false
-  }
 }
