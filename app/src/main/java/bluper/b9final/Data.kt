@@ -19,18 +19,12 @@ data class SteamGame(
   val appid: Int,
   val name: String,
   val basic_info: BasicInfo,
-  val best_purchase_option: BestPurchaseOption? = null,
 ) {
   override fun toString(): String = name
 
   @Serializable
   data class BasicInfo(
     val short_description: String = "",
-  )
-
-  @Serializable
-  data class BestPurchaseOption(
-    val formatted_final_price: String,
   )
 }
 

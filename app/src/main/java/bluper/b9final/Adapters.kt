@@ -35,6 +35,7 @@ class GameAdapter : Adapter<SteamGame, GameAdapter.Holder>() {
 
   override fun populateHolder(holder: Holder, data: SteamGame) {
     holder.binding.title.text = data.name
+    holder.binding.description.text = data.basic_info.short_description
   }
 
   override fun createHolder(view: View) = Holder(view)
