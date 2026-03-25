@@ -21,6 +21,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".GamesActivity"
+            android:theme="@style/Theme.FinalProject" />
     </application>
 
 </manifest>

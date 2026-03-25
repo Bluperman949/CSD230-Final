@@ -1,27 +1,25 @@
 package bluper.b9final
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.SortedList
 import bluper.b9final.databinding.RecyclerItemGameBinding
 import bluper.b9final.databinding.RecyclerItemTagBinding
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.Serializable
 
 // for the initial Tags view //
-@OptIn(InternalSerializationApi::class)
-@Serializable
-data class SteamTag(val tagid: Int, val name: String) {
-  override fun toString(): String = name
-}
-
 class TagAdapter : Adapter<SteamTag, TagAdapter.Holder>() {
   override fun getLayoutId(): Int = R.layout.recycler_item_tag
 
-  override fun formatDatum(holder: Holder, datum: SteamTag) {
-    holder.binding.textView.text = datum.name
+  override fun populateHolder(holder: Holder, data: SteamTag) {
+    val button = holder.binding.button
+    button.text = data.name
+    button.setOnClickListener { v ->
+      val intent = Intent(v.context, GamesActivity::class.java)
+        .putExtra("tag", data.tagid)
+      v.context.startActivity(intent)
+    }
   }
 
   override fun createHolder(view: View) = Holder(view)
@@ -32,17 +30,11 @@ class TagAdapter : Adapter<SteamTag, TagAdapter.Holder>() {
 }
 
 // for the Games view //
-@OptIn(InternalSerializationApi::class)
-@Serializable
-data class SteamGame(val appid: Int, val name: String) {
-  override fun toString(): String = name
-}
-
 class GameAdapter : Adapter<SteamGame, GameAdapter.Holder>() {
-  override fun getLayoutId(): Int = R.layout.recycler_item_tag
+  override fun getLayoutId(): Int = R.layout.recycler_item_game
 
-  override fun formatDatum(holder: Holder, datum: SteamGame) {
-    holder.binding.textView.text = datum.name
+  override fun populateHolder(holder: Holder, data: SteamGame) {
+    holder.binding.title.text = data.name
   }
 
   override fun createHolder(view: View) = Holder(view)
@@ -84,10 +76,10 @@ abstract class Adapter<T, H : RecyclerView.ViewHolder> :
   }
 
   override fun onBindViewHolder(holder: H, pos: Int) {
-    formatDatum(holder, data[pos])
+    populateHolder(holder, data[pos])
   }
 
   abstract fun getLayoutId(): Int
-  abstract fun formatDatum(holder: H, datum: T)
+  abstract fun populateHolder(holder: H, data: T)
   abstract fun createHolder(view: View): H
 }
