@@ -8,7 +8,6 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import okhttp3.Request
 import java.io.IOException
-import java.net.URLEncoder.encode as urlencode
 
 class GamesActivity : AbstractActivity() {
   val binding by lazy { ActivityGamesBinding.inflate(layoutInflater) }
@@ -19,32 +18,14 @@ class GamesActivity : AbstractActivity() {
   private val queryJson by lazy {
     val tag = intent.getIntExtra("tag", -24)
     if (tag == -24) throw IllegalStateException("Tag not provided")
-    urlencode(
-      """
-      {
-        "query": {
-          "count": 20,
-          "filters": {
-            "released_only": true,
-            "tagids_must_match": [
-              { "tagids": [$tag] }
-            ]
-          },
-          "type_filters": {
-            "include_games": true
-          },
-          "content_descriptors_excluded": ["1","2","3","4","5"]
-        },
-        "context": {
-          "language": "english",
-          "country_code": "us"
-        },
-        "data_request": {
-          "include_basic_info": true
-        }
-      }
-      """.replace(Regex("\\s+"), "").replace("\n", ""), "UTF-8"
-    )
+    """
+    {"query":{"count":"50","sort":"0","filters":{"released_only":true,"type_filters":{"include_apps"
+    :"","include_packages":"","include_bundles":"","include_games":true,"include_demos":"","include_
+    mods":"","include_dlc":"","include_software":"","include_video":"","include_hardware":"","includ
+    e_music":""},"tagids_must_match":[{"tagids":["$tag"]}],"content_descriptors_excluded":["1","4","
+    5"]}},"context":{"language":"english","country_code":"us"},"data_request":{"include_reviews":tru
+    e,"include_basic_info":true}}
+    """.trimIndent().replace("\n", "")
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {

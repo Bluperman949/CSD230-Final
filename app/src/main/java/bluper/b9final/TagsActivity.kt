@@ -36,7 +36,7 @@ class TagsActivity : AbstractActivity() {
 
   private fun loadSteamTags() {
     val request = Request.Builder()
-      .url("https://api.steampowered.com/IStoreService/GetTagList/v1/?language=english")
+      .url("https://api.steampowered.com/IStoreService/GetMostPopularTags/v1/?language=english")
       .build()
     lifecycleScope.launch {
       try {

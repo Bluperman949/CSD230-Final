@@ -4,7 +4,8 @@
     style="@style/Widget.AppCompat.Button.Small"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="12dp">
+    android:layout_margin="12dp"
+    android:padding="12dp">
 
     <TextView
         android:id="@+id/title"
@@ -16,12 +17,20 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
+        android:id="@+id/rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title" />
+
+    <TextView
         android:id="@+id/description"
         style="@style/TextAppearance.AppCompat.SearchResult.Subtitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="12dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title" />
+        app:layout_constraintTop_toBottomOf="@id/rating" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -10,6 +10,8 @@ import bluper.b9final.databinding.RecyclerItemTagBinding
 
 // for the initial Tags view //
 class TagAdapter : Adapter<SteamTag, TagAdapter.Holder>() {
+  override fun compareItems(a: SteamTag, b: SteamTag) = a.tagid - b.tagid
+
   override fun getLayoutId(): Int = R.layout.recycler_item_tag
 
   override fun populateHolder(holder: Holder, data: SteamTag) {
@@ -31,11 +33,14 @@ class TagAdapter : Adapter<SteamTag, TagAdapter.Holder>() {
 
 // for the Games view //
 class GameAdapter : Adapter<SteamGame, GameAdapter.Holder>() {
+  override fun compareItems(a: SteamGame, b: SteamGame) = a.appid - b.appid
+
   override fun getLayoutId(): Int = R.layout.recycler_item_game
 
   override fun populateHolder(holder: Holder, data: SteamGame) {
     holder.binding.title.text = data.name
     holder.binding.description.text = data.basic_info.short_description
+    if (data.reviews != null) holder.binding.rating.text = data.reviews.summary_filtered.toString()
   }
 
   override fun createHolder(view: View) = Holder(view)
@@ -58,14 +63,9 @@ abstract class Adapter<T, H : RecyclerView.ViewHolder> :
     notifyItemRangeRemoved(0, len)
   }
 
-  fun addItem(item: T) {
-    data += item
-    notifyItemInserted(data.size - 1)
-  }
-
   fun addItems(items: Collection<T>) {
     data += items
-    data.sortWith { a, b -> a.toString().compareTo(b.toString()) }
+    data.sortWith(this::compareItems)
     notifyItemRangeInserted(data.size - items.size, items.size)
   }
 
@@ -80,6 +80,7 @@ abstract class Adapter<T, H : RecyclerView.ViewHolder> :
     populateHolder(holder, data[pos])
   }
 
+  abstract fun compareItems(a: T, b: T): Int
   abstract fun getLayoutId(): Int
   abstract fun populateHolder(holder: H, data: T)
   abstract fun createHolder(view: View): H
